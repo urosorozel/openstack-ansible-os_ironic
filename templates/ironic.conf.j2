@@ -59,6 +59,11 @@ erase_devices_priority = {{ ironic_erase_devices_priority }}
 object_store_endpoint_type = {{ ironic_swift_url_endpoint_type }}
 {% endif %}
 
+{% if ironic_httpboot_enabled | bool %}
+http_root={{ ironic_httpboot_image_dir }}
+http_url={{ ironic_httpboot_publicurl }}
+{% endif %}
+
 [dhcp]
 dhcp_provider = {{ ironic_dhcp_provider }}
 
@@ -134,7 +139,6 @@ username = {{ ironic_service_user_name }}
 password = {{ ironic_service_password }}
 region_name = {{ keystone_service_region }}
 
-
 [neutron]
 url = {{ neutron_service_adminurl }}
 region_name = {{ neutron_service_region }}
@@ -182,7 +186,14 @@ pool_max_size = {{ ironic_wsgi_processes }}
 [pxe]
 tftp_server = {{ ironic_tftp_server_address }}
 pxe_append_params = {{ ironic_pxe_append_params }}
-
+{% if ironic_httpboot_enabled | bool %}
+ipxe_enabled=True
+pxe_bootfile_name=undionly.kpxe
+uefi_pxe_bootfile_name=ipxe.efi
+pxe_config_template=$pybasedir/drivers/modules/ipxe_config.template
+uefi_pxe_config_template=$pybasedir/drivers/modules/ipxe_config.template
+ipxe_use_swift={{ ironic_httpboot_use_swift }}
+{% endif %}
 [seamicro]
 
 [snmp]
