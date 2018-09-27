@@ -156,6 +156,9 @@ ironic_packages_list: >
   {%- if ironic_developer_mode | bool %}
   {%-   set package_list = package_list + ironic_developer_mode_distro_packages %}
   {%- endif %}
+  {%- if ironic_httpboot_enabled | bool %}
+  {%-   set package_list = package_list + ironic_conductor_httpboot_distro_packages %}
+  {%- endif %}
   {%- if ironic_services['ironic-api']['group'] in group_names %}
   {%-   set package_list = package_list + ironic_api_distro_packages %}
   {%- endif %}

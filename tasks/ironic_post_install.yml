@@ -121,3 +121,17 @@
     mode: "0440"
     owner: "root"
     group: "root"
+
+- name: Copy nginx config file
+  template:
+    src: "nginx.conf.j2"
+    dest: "/etc/nginx/nginx.conf"
+  notify:
+    - Restart nginx
+  when: ironic_httpboot_enabled
+
+- name: Create empty index.html
+  copy:
+    content: |
+      <!DOCTYPE html><title> </title>
+    dest: "{{ ironic_httpboot_image_dir }}/index.html"

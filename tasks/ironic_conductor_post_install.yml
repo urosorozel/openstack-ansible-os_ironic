@@ -49,3 +49,18 @@
     dest: "/tftpboot/"
     remote_src: True
   with_items: "{{ ironic_library_modules_paths }}"
+
+- name: Create "{{ ironic_httpboot_image_dir }}"
+  file:
+    path: "{{ ironic_httpboot_image_dir }}"
+    state: directory
+    owner: "{{ ironic_system_user_name }}"
+    group: "{{ ironic_system_group_name }}"
+    mode: "0755"
+
+- name: Copy library modules into "{{ ironic_httpboot_image_dir }}"
+  copy:
+    src: "{{ item }}"
+    dest: "{{ ironic_httpboot_image_dir }}"
+    remote_src: True
+  with_items: "{{ ironic_httpboot_library_modules_paths }}"

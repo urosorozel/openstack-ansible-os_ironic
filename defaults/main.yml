@@ -279,3 +279,12 @@ ironic_oneviewd_init_config_overrides: {}
 ironic_drivers_enabled:
   - agent_ipmitool
   - pxe_ipmitool
+
+# enable ipxe
+ironic_httpboot_enabled: True
+ironic_nginx_log_dir: /var/log/ironic
+ironic_httpboot_image_dir: /httpboot
+ironic_nginx_port: 8050
+ironic_httpboot_publicuri: "{{ ironic_service_proto }}://{{ ironic_tftp_server_address }}:{{ ironic_nginx_port }}"
+ironic_httpboot_publicurl: "{{ ironic_httpboot_publicuri }}"
+ironic_httpboot_use_swift: False

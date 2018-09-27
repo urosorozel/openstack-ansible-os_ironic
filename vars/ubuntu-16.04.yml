@@ -38,7 +38,15 @@ ironic_conductor_distro_packages:
 ironic_conductor_standalone_distro_packages:
   - isc-dhcp-server
 
+ironic_conductor_httpboot_distro_packages:
+  - ipxe
+  - nginx
+
 ironic_library_modules_paths:
   - "/usr/lib/PXELINUX/pxelinux.0"
   - "/usr/lib/syslinux/modules/efi64/chain.c32"
   - "/usr/lib/syslinux/modules/bios/ldlinux.c32"
+
+ironic_httpboot_library_modules_paths:
+  - "/usr/lib/ipxe/undionly.kpxe"
+  - "/usr/lib/ipxe/ipxe.efi"
