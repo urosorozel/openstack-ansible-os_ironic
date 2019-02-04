@@ -64,3 +64,9 @@
     dest: "{{ ironic_httpboot_image_dir }}"
     remote_src: True
   with_items: "{{ ironic_httpboot_library_modules_paths }}"
+
+- name: Create empty index.html
+  copy:
+    content: |
+      <!DOCTYPE html><title> </title>
+    dest: "{{ ironic_httpboot_image_dir }}/index.html"

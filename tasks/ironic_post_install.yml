@@ -129,9 +129,3 @@
   notify:
     - Restart nginx
   when: ironic_httpboot_enabled
-
-- name: Create empty index.html
-  copy:
-    content: |
-      <!DOCTYPE html><title> </title>
-    dest: "{{ ironic_httpboot_image_dir }}/index.html"
