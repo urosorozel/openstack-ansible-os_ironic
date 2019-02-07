@@ -308,7 +308,7 @@ ironic_drivers_enabled:
   - pxe_ipmitool
 
 # enable ipxe
-ironic_httpboot_enabled: True
+ironic_httpboot_enabled: False
 ironic_nginx_log_dir: /var/log/ironic
 ironic_httpboot_image_dir: /httpboot
 ironic_nginx_port: 8050

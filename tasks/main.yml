@@ -36,6 +36,7 @@
   when: "'ironic-oneviewd' in (filtered_ironic_services | map(attribute='service_key') | list)"
 
 - include_tasks: ironic_post_install.yml
+  when: "ironic_services['ironic-conductor']['group'] in group_names"
   tags:
     - ironic-config
 
