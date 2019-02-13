@@ -31,6 +31,7 @@ ironic_driver_types:
     inspect: inspector
     management: ipmitool
     power: ipmitool
+    rescue: agent
   agent_ipmitool_socat:
     hardware_type: ipmi
     boot: pxe
@@ -115,6 +116,7 @@ ironic_driver_types:
     inspect: inspector
     management: ipmitool
     power: ipmitool
+    rescue: agent
   pxe_ipmitool_socat:
     hardware_type: ipmi
     boot: pxe

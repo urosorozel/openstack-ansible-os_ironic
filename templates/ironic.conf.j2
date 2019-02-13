@@ -22,7 +22,7 @@ enabled_deploy_interfaces = {{ filtered_ironic_drivers | json_query('[*].deploy'
 enabled_inspect_interfaces = {{ filtered_ironic_drivers | json_query('[*].inspect') | unique | join(',') }}
 enabled_management_interfaces = {{ filtered_ironic_drivers | json_query('[*].management') | unique | join(',') }}
 enabled_power_interfaces = {{ filtered_ironic_drivers | json_query('[*].power') | unique | join(',') }}
-
+enabled_rescue_interfaces = {{ filtered_ironic_drivers | json_query('[*].rescue') | unique | join(',') }}
 
 [agent]
 
