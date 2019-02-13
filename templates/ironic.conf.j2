@@ -95,6 +95,15 @@ swift_api_version = {{ ironic_swift_api_version }}
 [ilo]
 
 [inspector]
+enabled = {{ ironic_ironic_inspector_enabled }}
+username = {{ ironic_ironic_inspector_service_user_name }}
+password = {{ ironic_ironic_inspector_service_password }}
+project_name = {{ ironic_ironic_inspector_service_project_name }}
+user_domain_name = {{ ironic_ironic_inspector_user_domain_name }}
+project_domain_name = {{ ironic_ironic_inspector_project_domain_name }}
+auth_url = {{ keystone_service_adminuri }}
+insecure = {{ keystone_service_internaluri_insecure | bool }}
+auth_type = {{ ironic_ironic_inspector_keystone_auth_plugin }}
 
 [ipmi]
 
