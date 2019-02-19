@@ -62,7 +62,7 @@
 - name: Copy library modules into "{{ ironic_httpboot_image_dir }}"
   copy:
     src: "{{ item }}"
-    dest: "{{ ironic_httpboot_image_dir }}"
+    dest: "/tftpboot/"
     remote_src: True
   with_items: "{{ ironic_httpboot_library_modules_paths }}"
   when: ironic_httpboot_enabled
