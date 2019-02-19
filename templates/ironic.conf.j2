@@ -54,6 +54,7 @@ max_pool_size = {{ ironic_db_max_pool_size }}
 pool_timeout = {{ ironic_db_pool_timeout }}
 
 [deploy]
+default_boot_option = {{ ironic_default_boot_option }}
 erase_devices_priority = {{ ironic_erase_devices_priority }}
 {% if not ironic_standalone | bool %}
 object_store_endpoint_type = {{ ironic_swift_url_endpoint_type }}

@@ -122,7 +122,8 @@ ironic_standalone: False
 ironic_automated_clean: false
 # Set to 0 to disable erase devices on cleaning
 ironic_erase_devices_priority: 10
-
+# Set boot mode to local
+ironic_default_boot_option: "local"
 ## ironic-oneview
 ironic_oneview_manager_url: ""
 ironic_oneview_username: ""
