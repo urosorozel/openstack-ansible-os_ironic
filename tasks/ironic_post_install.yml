@@ -129,3 +129,11 @@
     mode: "0440"
     owner: "root"
     group: "root"
+
+- name: Copy webfs config file
+  template:
+    src: "webfs.conf.j2"
+    dest: "/etc/webfs.conf"
+  notify:
+    - Restart webfs
+  when: ironic_httpboot_enabled

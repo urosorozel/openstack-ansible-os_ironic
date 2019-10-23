@@ -34,3 +34,9 @@
     name: "isc-dhcp-server"
     state: restarted
   failed_when: false
+
+- name: Restart webfs
+  service:
+    name: "webfs"
+    state: restarted
+  failed_when: false
