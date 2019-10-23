@@ -132,6 +132,39 @@ ironic_standalone: False
 ironic_automated_clean: false
 # Set to 0 to disable erase devices on cleaning
 ironic_erase_devices_priority: 10
+# Set boot mode to local
+ironic_default_boot_option: "local"
+## ironic-oneview
+ironic_oneview_manager_url: ""
+ironic_oneview_username: ""
+ironic_oneview_password: ""
+ironic_oneview_allow_insecure_connections: False
+ironic_oneview_tls_cacert_file: "None"
+ironic_oneview_max_polling_attempts: 12
+
+# ironic-oneviewd
+# Polling interval in seconds for daemon to manage the nodes
+ironic_oneviewd_retry_interval: 15
+# Size the of the RPC thread pool
+ironic_oneviewd_rpc_thread_pool_size: 20
+# (Optional) Whether to enable the periodic tasks for OneView
+# driver be aware when OneView hardware resources are taken
+# and released by Ironic or OneView users and proactively
+# manage nodes in clean fail state according to Dynamic
+# Allocation model of hardware resources allocation in
+# OneView
+ironic_oneviewd_enable_periodic_tasks: True
+# Period (in seconds) for periodic tasks to be executed when
+# enable_periodic_tasks is True
+ironic_oneviewd_periodic_check_interval: "{{ ironic_oneviewd_retry_interval }}"
+# (Optional) Enable auditing of OneView API requests
+ironic_oneviewd_audit_enabled: False
+# Path to map file for OneView audit cases. Used only when
+# OneView API audit is enabled
+ironic_oneviewd_audit_map_file: "None"
+# Path to OneView audit log file. Created only when Oneview
+# API audit is enabled.
+ironic_oneviewd_audit_output_file: "None"
 
 # Database
 ironic_db_setup_host: "{{ ('galera_all' in groups) | ternary(groups['galera_all'][0], 'localhost') }}"
@@ -271,3 +304,21 @@ ironic_conductor_init_config_overrides: {}
 ironic_drivers_enabled:
   - agent_ipmitool
   - pxe_ipmitool
+
+# enable ipxe
+ironic_httpboot_enabled: False
+ironic_nginx_log_dir: /var/log/ironic
+ironic_httpboot_image_dir: /httpboot
+ironic_nginx_port: 8050
+ironic_httpboot_publicuri: "{{ ironic_service_proto }}://{{ ironic_tftp_server_address }}:{{ ironic_nginx_port }}"
+ironic_httpboot_publicurl: "{{ ironic_httpboot_publicuri }}"
+ironic_httpboot_use_swift: False
+
+# inspector
+ironic_ironic_inspector_enabled: True
+ironic_ironic_inspector_service_user_name: "{{ ironic_inspector_service_user_name | default('ironic-inspector') }}"
+ironic_ironic_inspector_service_password: "{{ ironic_inspector_service_password }}"
+ironic_ironic_inspector_user_domain_name: "{{ ironic_inspector_service_user_domain_id | default('default') }}"
+ironic_ironic_inspector_project_domain_name: "{{ ironic_inspector_service_project_domain_id | default('default') }}"
+ironic_ironic_inspector_service_project_name: "{{ ironic_inspector_service_project_name | default('service') }}"
+ironic_ironic_inspector_keystone_auth_plugin: "{{ ironic_inspector_keystone_auth_plugin | default('password') }}"
