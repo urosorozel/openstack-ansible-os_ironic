@@ -2,13 +2,20 @@
 
 [DEFAULT]
 rootwrap_config = /etc/ironic-inspector/rootwrap.conf
-auth_strategy = keystone
+auth_strategy = {{ ironic_inspector_openstack_auth_strategy }}
 debug = {{ debug }}
+use_journal = True
+host = {{ inventory_hostname }}
+standalone = false
 
-# RPC Backend
-transport_url = {{ ironic_inspector_oslomsg_rpc_transport }}://{% for host in ironic_inspector_oslomsg_rpc_servers.split(',') %}{{ ironic_inspector_oslomsg_rpc_userid }}:{{ ironic_oslomsg_rpc_password }}@{{ host }}:{{ ironic_inspector_oslomsg_rpc_port }}{% if not loop.last %},{% else %}/{{ ironic_inspector_oslomsg_rpc_vhost }}{% if ironic_inspector_oslomsg_rpc_use_ssl | bool %}?ssl=1{% else %}?ssl=0{% endif %}{% endif %}{% endfor %}
+## RPC Backend
+transport_url = {{ ironic_inspector_oslomsg_rpc_transport }}://{% for host in ironic_inspector_oslomsg_rpc_servers.split(',') %}{{ ironic_inspector_oslomsg_rpc_userid }}:{{ ironic_inspector_oslomsg_rpc_password }}@{{ host }}:{{ ironic_inspector_oslomsg_rpc_port }}{% if not loop.last %},{% else %}/{{ ironic_inspector_oslomsg_rpc_vhost }}{% if ironic_inspector_oslomsg_rpc_use_ssl | bool %}?ssl=1{% else %}?ssl=0{% endif %}{% endif %}{% endfor %}
+
+[coordination]
+backend_url = memcached://{{ ansible_host }}:11211
 
 [capabilities]
+boot_mode = {{ ironic_inspector_boot_mode_record | bool | default('false') }}
 
 [cors]
 
@@ -19,8 +26,9 @@ max_pool_size = {{ ironic_inspector_db_max_pool_size }}
 pool_timeout = {{ ironic_inspector_db_pool_timeout }}
 
 [discovery]
-enroll_node_driver = ipmi
-
+{% if ironic_inspector_enable_discovery == true %}
+enroll_node_driver = {{ ironic_inspector_default_node_driver }}
+{% endif %}
 
 [dnsmasq_pxe_filter]
 {% if ironic_inspector_pxe_filter == "dnsmasq" %}
@@ -31,31 +39,31 @@ dnsmasq_stop_command  = systemctl stop dnsmasq
 
 [iptables]
 {% if ironic_inspector_pxe_filter == "iptables" %}
-manage_firewall = True
+manage_firewall = {{ ironic_inspector_manage_firewall | bool | default('false') }}
 {% endif %}
-dnsmasq_interface =  br-ironic
+dnsmasq_interface =  {{ironic_inspector_dhcp_interface }}
 
 [ironic]
-username = ironic
-password = {{ ironic_service_password }}
-project_name = service
-user_domain_name = {{ ironic_service_user_domain_id }}
-project_domain_name = {{ ironic_service_project_domain_id }}
+username = {{ ironic_inspector_service_user_name }}
+password = {{ ironic_inspector_service_password }}
+project_name = {{ ironic_inspector_service_project_name }}
+user_domain_name = {{ ironic_inspector_service_domain_name | default("Default") }}
+project_domain_name = {{ ironic_inspector_service_domain_name | default("Default") }}
 auth_url = {{ keystone_service_adminurl }}
 insecure = {{ keystone_service_adminuri_insecure | bool }}
-auth_type = password
-valid_interfaces = internal,public
+auth_type = {{ ironic_inspector_keystone_auth_plugin }}
+valid_interfaces = {{ ironic_inspector_valid_interfaces }}
 insecure = {{ keystone_service_internaluri_insecure | bool }}
 
 [keystone_authtoken]
 insecure = {{ keystone_service_internaluri_insecure | bool }}
-auth_type = password
+auth_type = {{ ironic_inspector_keystone_auth_plugin }}
 auth_url = {{ keystone_service_adminuri }}
-auth_uri = {{ keystone_service_internaluri }}
-project_domain_id = default
-user_domain_id = default
-project_name = "service"
-username = ironic_inspector
+www_authenticate_uri = {{ keystone_service_internaluri }}
+project_domain_id = {{ ironic_inspector_service_project_domain_id }}
+user_domain_id = {{ ironic_inspector_service_user_domain_id }}
+project_name = {{ ironic_inspector_service_project_name }}
+username = {{ ironic_inspector_service_user_name }}
 password = {{ ironic_inspector_service_password }}
 region_name = {{ keystone_service_region }}
 memcached_servers = {{ memcached_servers }}
@@ -63,39 +71,52 @@ memcached_servers = {{ memcached_servers }}
 memcache_security_strategy = ENCRYPT
 memcache_secret_key = {{ memcached_encryption_key }}
 
+[oslo_concurrency]
+lock_path = {{ ironic_inspector_lock_path }}
+
+[oslo_messaging_amqp]
+
+[oslo_messaging_notifications]
+transport_url = {{ ironic_inspector_oslomsg_notify_transport }}://{% for host in ironic_inspector_oslomsg_notify_servers.split(',') %}{{ ironic_inspector_oslomsg_notify_userid }}:{{ ironic_inspector_oslomsg_notify_password }}@{{ host }}:{{ ironic_inspector_oslomsg_notify_port }}{% if not loop.last %},{% else %}/{{ ironic_inspector_oslomsg_notify_vhost }}{% if ironic_inspector_oslomsg_notify_use_ssl | bool %}?ssl=1{% else %}?ssl=0{% endif %}{% endif %}{% endfor %}
+
+[oslo_messaging_rabbit]
+ssl = {{ ironic_inspector_oslomsg_rpc_use_ssl }}
+pool_max_size = {{ ironic_inspector_wsgi_processes }}
+
 [oslo_policy]
 
 [pci_devices]
 
 [processing]
-add_ports = pxe
-keep_ports = present
-store_data = database
-store_data_location = report_path
-ramdisk_logs_dir = /ironic/log
-always_store_ramdisk_logs = true
+add_ports = {{ ironic_inspector_port_addition | default('pxe') }}
+keep_ports = {{ ironic_inspector_keep_ports | default('present') }}
+store_data = {{ ironic_inspector_swift_store_data }}
+ramdisk_logs_dir = {{ ironic_inspector_data_dir }}/log
+always_store_ramdisk_logs = {{ ironic_inspector_store_ramdisk_logs | default('true') | bool }}
 {% if ironic_inspector_processing_hooks is defined %}
 processing_hooks = {{ ironic_inspector_processing_hooks }}
 {% endif %}
 {% if ironic_inspector_enable_discovery == true %}
 node_not_found_hook = enroll
 {% endif %}
+power_off = {{ ironic_inspector_power_off }}
+permit_active_introspection = {{ ironic_inspector_permit_active_introspection }}
 
 [pxe_filter]
 {% if ironic_inspector_dhcp_type == "isc_dhcp" %}
 driver = iptables
 {% else %}
-driver = dnsmasq
+driver = {{ ironic_inspector_pxe_filter }}
 {% endif %}
 
 [swift]
-username = swift-inspector
+username = {{ ironic_inspector_swift_user_name }}
 password = {{ ironic_inspector_swift_password }}
-project_name = ironic-inspector
-user_domain_name = default
-project_domain_name = default
+project_name = {{ ironic_inspector_swift_project_name }}
+user_domain_name = {{ ironic_inspector_service_domain_name | default("Default") }}
+project_domain_name = {{ ironic_inspector_service_domain_name | default("Default") }}
 auth_url = {{ keystone_service_adminurl }}
 insecure = {{ keystone_service_adminuri_insecure | bool }}
-auth_type = password
-valid_interfaces = internal,public
-container = ironic-inspector
+auth_type = {{ ironic_inspector_keystone_auth_plugin }}
+valid_interfaces = {{ ironic_inspector_valid_interfaces }}
+container = {{ ironic_inspector_swift_container }}

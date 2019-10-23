@@ -75,3 +75,5 @@
       condition: inventory_hostname in groups['ironic-inspector']
     - path: "/httpboot"
       condition: inventory_hostname in groups['ironic-inspector']
+    - path: "{{ ironic_inspector_data_dir }}"
+      condition: inventory_hostname in groups['ironic-inspector']

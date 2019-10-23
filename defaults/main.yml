@@ -80,7 +80,17 @@ ironic_services:
     group: ironic_inspector
     service_name: ironic-inspector
     init_config_overrides: "{{ ironic_inspector_init_config_overrides }}"
-    execstarts: "{{ ironic_bin }}/ironic-inspector"
+    #execstarts: "{{ ironic_bin }}/ironic-inspector"
+    wsgi_app: True
+    wsgi_name: ironic-inspector-api-wsgi
+    uwsgi_overrides: "{{ ironic_inspector_api_uwsgi_ini_overrides }}"
+    uwsgi_port: "{{ ironic_inspector_service_port }}"
+    uwsgi_bind_address: "{{ ironic_inspector_uwsgi_bind_address }}"
+  ironic-inspector-conductor:
+    group: ironic_inspector
+    service_name: ironic-inspector-conductor
+    init_config_overrides: "{{ ironic_inspector_init_config_overrides }}"
+    execstarts: "{{ ironic_bin }}/ironic-inspector-conductor"
 
 ironic_service_name: ironic
 ironic_service_type: baremetal
@@ -140,6 +150,8 @@ ironic_standalone: False
 ironic_automated_clean: false
 # Set to 0 to disable erase devices on cleaning
 ironic_erase_devices_priority: 10
+# Set boot mode to local
+ironic_default_boot_option: "local"
 
 # Database
 ironic_db_setup_host: "{{ ('galera_all' in groups) | ternary(groups['galera_all'][0], 'localhost') }}"
@@ -166,7 +178,7 @@ ironic_enabled_network_interfaces_list: "flat,noop{{ (ironic_neutron_provisionin
 ironic_default_network_interface: "{{ (ironic_neutron_provisioning_network_uuid is defined) | ternary('neutron','flat') }}"
 ironic_auth_strategy: keystone
 ironic_dhcp_provider: "{{ (ironic_standalone | bool) | ternary('none', 'neutron') }}"
-ironic_sync_power_state_interval: "{{ (ironic_standalone | bool) | ternary('-1', '60') }}"
+ironic_sync_power_state_interval: "{{ (ironic_standalone | bool) | ternary('-1', '300') }}"
 ironic_db_connection_string: "mysql+pymysql://{{ ironic_galera_user }}:{{ ironic_container_mysql_password }}@{{ ironic_galera_address }}/ironic{% if ironic_galera_use_ssl | bool %}&ssl_ca={{ ironic_galera_ssl_ca_cert }}{% endif %}"
 
 # Ironic db tuning
@@ -205,6 +217,7 @@ ironic_pip_packages:
 ironic_inspector_pip_packages:
   - ironic-inspector
   - python-ironic-inspector-client
+  - pymemcache
 
 # Memcached override
 ironic_memcached_servers: "{{ memcached_servers }}"
@@ -281,6 +294,14 @@ ironic_drivers_enabled:
 ironic_inspector_developer_mode: false
 ironic_inspector_venv_python_executable: "{{ openstack_venv_python_executable | default('python2') }}"
 
+# WSGI settings
+ironic_inspector_wsgi_threads: 1
+ironic_inspector_wsgi_processes_max: 16
+ironic_inspector_wsgi_processes: "{{ [[ansible_processor_vcpus|default(4) // 4, 1] | max, ironic_wsgi_processes_max] | min }}"
+ironic_inspector_uwsgi_bind_address: "{{ openstack_service_bind_address | default('0.0.0.0') }}"
+ironic_inspector_api_uwsgi_ini_overrides: {}
+
+ironic_inspector_openstack_auth_strategy: keystone
 # System info
 ironic_inspector_service_setup_host: "{{ openstack_service_setup_host | default('localhost') }}"
 ironic_inspector_lock_path: /var/lock/ironic-inspector
@@ -302,12 +323,16 @@ ironic_inspector_service_role_name: "admin"
 ironic_inspector_service_project_name: "service"
 ironic_inspector_service_in_ldap: False
 ironic_inspector_service_domain_id: default
-
+ironic_inspector_service_project_domain_id: default
+ironic_inspector_service_user_domain_id: default
 # Database
 ironic_inspector_db_setup_host: "{{ ('galera_all' in groups) | ternary(groups['galera_all'][0], 'localhost') }}"
 ironic_inspector_galera_address: "{{ galera_address | default('127.0.0.1') }}"
 ironic_inspector_galera_user: ironic-inspector
 ironic_inspector_galera_database: ironic_inspector
+
+## Keystone authentication middleware
+ironic_inspector_keystone_auth_plugin: password
 
 # Ironic db tuning
 ironic_inspector_db_max_overflow: 10
@@ -322,7 +347,12 @@ ironic_inspector_service_user_name: "ironic_inspector"
 
 ### OpenStack Services to integrate with
 # Ironic swift store information
+ironic_inspector_data_dir: /ironic
+ironic_inspector_swift_store_data: swift
 ironic_inspector_swift_user_name: swift-inspector
+ironic_inspector_swift_password: swift-inspector-password
+ironic_inspector_swift_project_name: ironic-inspector
+ironic_inspector_swift_container: ironic-inspector
 ironic_inspector_swift_role_names:
   - _member_
   - swiftoperator
@@ -341,11 +371,15 @@ ironic_inspector_dhcp_lease_time: 600
 
 ironic_inspector_dhcp_type: dnsmasq # isc_dhcp
 ironic_inspector_boot_mode: http #tftp
-ironic_inspector_pxe_boot_mode: "{{ ironic_inspector_boot_mode }}"
+ironic_inspector_pxe_boot_mode: "{{ ironic_inspector_boot_mode | default('http')}}"
 ironic_inspector_httpboot_dir: /httpboot
+ironic_httpboot_dir: /httpboot
+ironic_httpboot_image_dir: /httpboot
 ironic_inspector_tftpboot_dir: "{{ ironic_tftpd_root }}"
+ironic_inspector_power_off: true
+ironic_inspector_permit_active_introspection: false
 
-ironic_inspector_dhcp_interface: br-ironic
+ironic_inspector_dhcp_interface: br-pxe
 ironic_inspector_valid_interfaces: internal,public
 
 ### Config Overrides
@@ -363,8 +397,8 @@ ironic_inspector_oslomsg_rpc_transport: "{{ oslomsg_rpc_transport | default('rab
 ironic_inspector_oslomsg_rpc_servers: "{{ oslomsg_rpc_servers | default('127.0.0.1') }}"
 ironic_inspector_oslomsg_rpc_port: "{{ oslomsg_rpc_port | default('5672') }}"
 ironic_inspector_oslomsg_rpc_use_ssl: "True"
-ironic_inspector_oslomsg_rpc_userid: ironic
-ironic_inspector_oslomsg_rpc_vhost: /ironic
+ironic_inspector_oslomsg_rpc_userid: ironic-inspector
+ironic_inspector_oslomsg_rpc_vhost: /ironic-inspector
 
 ironic_inspector_oslomsg_notify_host_group: "{{ oslomsg_notify_host_group | default('rabbitmq_all') }}"
 ironic_inspector_oslomsg_notify_setup_host: "{{ (ironic_inspector_oslomsg_notify_host_group in groups) | ternary(groups[ironic_inspector_oslomsg_notify_host_group][0], 'localhost') }}"
@@ -373,11 +407,39 @@ ironic_inspector_oslomsg_notify_servers: "{{ oslomsg_notify_servers | default('1
 ironic_inspector_oslomsg_notify_port: "{{ oslomsg_notify_port | default('5672') }}"
 ironic_inspector_oslomsg_notify_use_ssl: "False"
 ironic_inspector_oslomsg_notify_userid: "{{ ironic_inspector_oslomsg_rpc_userid }}"
-ironic_inspector_oslomsg_notify_password: "{{ ironic_oslomsg_rpc_password }}"
+ironic_inspector_oslomsg_notify_password: "{{ ironic_inspector_oslomsg_rpc_password }}"
 ironic_inspector_oslomsg_notify_vhost: "{{ ironic_inspector_oslomsg_rpc_vhost }}"
 ironic_inspector_optional_oslomsg_amqp1_pip_packages:
   - oslo.messaging[amqp1]
 ironic_inspector_oslomsg_amqp1_enabled: True
 
-ironic_inspector_ipa_initrd_name: ironic-deploy.initrd
-ironic_inspector_ipa_kernel_name: ironic-deploy.kernel
+ironic_inspector_ipa_tftpboot_image_dir: "{{ ironic_inspector_tftpboot_dir }}/ipa"
+ironic_inspector_ipa_kernel_url: https://tarballs.openstack.org/ironic-python-agent/tinyipa/files/tinyipa-stable-ussuri.vmlinuz
+ironic_inspector_ipa_kernel_name: ipa_kernel
+ironic_inspector_ipa_kernel_sha256_url: https://tarballs.openstack.org/ironic-python-agent/tinyipa/files/tinyipa-stable-ussuri.vmlinuz.sha256
+ironic_inspector_ipa_initrd_url: https://tarballs.openstack.org/ironic-python-agent/tinyipa/files/tinyipa-stable-ussuri.gz
+ironic_inspector_ipa_initrd_name: ipa_ramdisk
+ironic_inspector_ipa_initrd_sha256_url: https://tarballs.openstack.org/ironic-python-agent/tinyipa/files/tinyipa-stable-ussuri.gz.sha256
+
+ironic_inspector_ipa_kernel_suffix_url: "{{ ironic_inspector_webfsd_port}}/{{ ironic_inspector_ipa_kernel_name }}"
+ironic_inspector_ipa_initrd_suffix_url: "{{ ironic_inspector_webfsd_port}}/{{ ironic_inspector_ipa_initrd_name}}"
+
+# enable ipxe
+ironic_httpboot_enabled: False
+ironic_inspector_webfsd_log_dir: /var/log/webfs
+ironic_webfsd_log_dir: /var/log/webfs
+ironic_inspector_httpboot_image_dir: /httpboot
+ironic_inspector_webfsd_port: 8282
+ironic_webfsd_port: 8282
+ironic_inspector_httpboot_publicuri: "{{ ironic_service_proto }}://{{ ironic_tftp_server_address }}:{{ ironic_webfsd_port }}"
+ironic_httpboot_publicuri: "{{ ironic_service_proto }}://{{ ironic_tftp_server_address }}:{{ ironic_webfsd_port }}"
+ironic_inspector_httpboot_publicurl: "{{ ironic_httpboot_publicuri }}"
+ironic_httpboot_publicurl: "{{ ironic_httpboot_publicuri }}"
+ironic_httpboot_use_swift: False
+ironic_pxe_config_template:
+ironic_uefi_pxe_config_template:
+# inspector
+ironic_inspector_project_domain_id: "{{ ironic_service_project_domain_id | default('default') }}"
+
+ironic_inspector_boot_mode_record: True
+ironic_inspector_default_node_driver: ipmi
