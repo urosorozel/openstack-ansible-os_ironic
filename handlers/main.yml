@@ -52,3 +52,9 @@
     name: "dnsmasq"
     state: restarted
   failed_when: false
+
+- name: Restart webfs
+  service:
+    name: "webfs"
+    state: restarted
+  failed_when: false

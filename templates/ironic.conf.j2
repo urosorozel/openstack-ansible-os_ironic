@@ -17,16 +17,22 @@ default_network_interface = {{ ironic_default_network_interface }}
 transport_url = {{ ironic_oslomsg_rpc_transport }}://{% for host in ironic_oslomsg_rpc_servers.split(',') %}{{ ironic_oslomsg_rpc_userid }}:{{ ironic_oslomsg_rpc_password }}@{{ host }}:{{ ironic_oslomsg_rpc_port }}{% if not loop.last %},{% else %}/{{ ironic_oslomsg_rpc_vhost }}{% if ironic_oslomsg_rpc_use_ssl | bool %}?ssl=1{% else %}?ssl=0{% endif %}{% endif %}{% endfor %}
 
 # drivers
+#default_boot_interface = i
 enabled_hardware_types = {{ filtered_ironic_drivers | json_query('[*].hardware_type') | unique | join(',') }}
 enabled_boot_interfaces = {{ filtered_ironic_drivers | json_query('[*].boot') | unique | join(',') }}
 enabled_deploy_interfaces = {{ filtered_ironic_drivers | json_query('[*].deploy') | unique | join(',') }}
 enabled_inspect_interfaces = {{ filtered_ironic_drivers | json_query('[*].inspect') | unique | join(',') }}
 enabled_management_interfaces = {{ filtered_ironic_drivers | json_query('[*].management') | unique | join(',') }}
 enabled_power_interfaces = {{ filtered_ironic_drivers | json_query('[*].power') | unique | join(',') }}
-
+enabled_rescue_interfaces = {{ filtered_ironic_drivers | json_query('[*].rescue') | unique | join(',') }}
 
 [agent]
-
+deploy_logs_collect = always
+deploy_logs_storage_backend = swift
+deploy_logs_swift_container = ironic_deploy_logs_container
+deploy_logs_swift_days_to_expire = 30
+#image_download_source = swift
+#
 [amt]
 
 [api]
@@ -55,6 +61,7 @@ max_pool_size = {{ ironic_db_max_pool_size }}
 pool_timeout = {{ ironic_db_pool_timeout }}
 
 [deploy]
+default_boot_option = {{ ironic_default_boot_option }}
 erase_devices_priority = {{ ironic_erase_devices_priority }}
 {% if not ironic_standalone | bool %}
 object_store_endpoint_type = {{ ironic_swift_url_endpoint_type }}
@@ -62,6 +69,11 @@ object_store_endpoint_type = {{ ironic_swift_url_endpoint_type }}
 {% if ironic_enable_web_server_for_images | bool %}
 http_root ={{ ironic_http_root }}
 http_url = {{ ironic_http_url }}
+{% endif %}
+
+{% if ironic_httpboot_enabled | bool %}
+http_root={{ ironic_httpboot_image_dir }}
+http_url={{ ironic_httpboot_publicurl }}
 {% endif %}
 
 [dhcp]
@@ -120,6 +132,7 @@ valid_interfaces = {{ ironic_inspector_valid_interfaces }}
 region_name = {{ ironic_service_region }}
 
 [keystone_authtoken]
+service_token_roles_required = True
 insecure = {{ keystone_service_internaluri_insecure | bool }}
 auth_type = {{ ironic_keystone_auth_plugin }}
 auth_url = {{ keystone_service_adminuri }}
@@ -141,6 +154,16 @@ memcache_secret_key = {{ memcached_encryption_key }}
 
 [matchmaker_redis]
 
+[nova]
+auth_type = password
+username = {{ ironic_service_user_name }}
+password = {{ ironic_service_password }}
+project_name = {{ ironic_service_project_name }}
+user_domain_id = {{ ironic_service_user_domain_id }}
+project_domain_id = {{ ironic_service_project_domain_id }}
+auth_url = {{ keystone_service_adminuri }}
+insecure = {{ keystone_service_internaluri_insecure | bool }}
+
 [service_catalog]
 insecure = {{ keystone_service_internaluri_insecure | bool }}
 auth_type = {{ ironic_keystone_auth_plugin }}
@@ -152,6 +175,7 @@ project_name = {{ ironic_service_project_name }}
 username = {{ ironic_service_user_name }}
 password = {{ ironic_service_password }}
 region_name = {{ keystone_service_region }}
+endpoint_override = {{ ironic_service_publicuri }}
 
 
 [neutron]
@@ -189,6 +213,13 @@ tftp_server = {{ ironic_tftp_server_address }}
 pxe_append_params = {{ ironic_pxe_append_params }}
 tftp_root = {{ ironic_tftpd_root }}
 tftp_master_path = {{ ironic_tftpd_root }}/master_images
+{% if ironic_httpboot_enabled | bool %}
+pxe_bootfile_name=undionly.kpxe
+uefi_pxe_bootfile_name=ipxe.efi
+pxe_config_template={{ ironic_pxe_config_template | default("$pybasedir/drivers/modules/ipxe_config.template") }}
+uefi_pxe_config_template={{ ironic_uefi_pxe_config_template | default("$pybasedir/drivers/modules/ipxe_config.template") }}
+ipxe_use_swift={{ ironic_httpboot_use_swift }}
+{% endif %}
 
 [seamicro]
 
@@ -199,5 +230,16 @@ tftp_master_path = {{ ironic_tftpd_root }}/master_images
 [ssl]
 
 [swift]
+{% if not ironic_standalone | bool and not ironic_enable_web_server_for_images | bool %}
+swift_temp_url_key = {{ ironic_swift_temp_url_secret_key }}
+auth_type = password
+username = {{ ironic_service_user_name }}
+password = {{ ironic_service_password }}
+project_name = {{ ironic_service_project_name }}
+user_domain_id = {{ ironic_service_user_domain_id }}
+project_domain_id = {{ ironic_service_project_domain_id }}
+auth_url = {{ keystone_service_adminuri }}
+insecure = {{ keystone_service_internaluri_insecure | bool }}
+{% endif %}
 
 [virtualbox]
