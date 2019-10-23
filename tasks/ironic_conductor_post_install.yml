@@ -49,3 +49,43 @@
     dest: "/tftpboot/"
     remote_src: True
   with_items: "{{ ironic_library_modules_paths }}"
+
+# Add 'yum' in condition if tftp socket required to be started for centos.
+- name: Start up tftp socket
+  when:
+    - "ansible_pkg_mgr in ['zypper']"
+  systemd:
+    daemon_reload: yes
+    name: "{{ ironic_tftpd_service_name }}.socket"
+    state: started
+    enabled: true
+
+- name: Start up tftp
+  service:
+    name: "{{ ironic_tftpd_service_name }}"
+    state: started
+    enabled: true
+
+- name: Create "{{ ironic_httpboot_image_dir }}"
+  file:
+    path: "{{ ironic_httpboot_image_dir }}"
+    state: directory
+    owner: "{{ ironic_system_user_name }}"
+    group: "{{ ironic_system_group_name }}"
+    mode: "0755"
+  when: ironic_httpboot_enabled
+
+- name: Copy library modules into "{{ ironic_httpboot_image_dir }}"
+  copy:
+    src: "{{ item }}"
+    dest: "/tftpboot/"
+    remote_src: True
+  with_items: "{{ ironic_httpboot_library_modules_paths }}"
+  when: ironic_httpboot_enabled
+
+- name: Create empty index.html
+  copy:
+    content: |
+      <!DOCTYPE html><title> </title>
+    dest: "{{ ironic_httpboot_image_dir }}/index.html"
+  when: ironic_httpboot_enabled

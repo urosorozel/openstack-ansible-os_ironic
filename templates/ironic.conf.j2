@@ -22,7 +22,7 @@ enabled_deploy_interfaces = {{ filtered_ironic_drivers | json_query('[*].deploy'
 enabled_inspect_interfaces = {{ filtered_ironic_drivers | json_query('[*].inspect') | unique | join(',') }}
 enabled_management_interfaces = {{ filtered_ironic_drivers | json_query('[*].management') | unique | join(',') }}
 enabled_power_interfaces = {{ filtered_ironic_drivers | json_query('[*].power') | unique | join(',') }}
-
+enabled_rescue_interfaces = {{ filtered_ironic_drivers | json_query('[*].rescue') | unique | join(',') }}
 
 [agent]
 
@@ -54,6 +54,7 @@ max_pool_size = {{ ironic_db_max_pool_size }}
 pool_timeout = {{ ironic_db_pool_timeout }}
 
 [deploy]
+default_boot_option = {{ ironic_default_boot_option }}
 erase_devices_priority = {{ ironic_erase_devices_priority }}
 {% if not ironic_standalone | bool %}
 object_store_endpoint_type = {{ ironic_swift_url_endpoint_type }}
@@ -61,6 +62,11 @@ object_store_endpoint_type = {{ ironic_swift_url_endpoint_type }}
 {% if ironic_enable_web_server_for_images | bool %}
 http_root ={{ ironic_http_root }}
 http_url = {{ ironic_http_url }}
+{% endif %}
+
+{% if ironic_httpboot_enabled | bool %}
+http_root={{ ironic_httpboot_image_dir }}
+http_url={{ ironic_httpboot_publicurl }}
 {% endif %}
 
 [dhcp]
@@ -97,6 +103,15 @@ use_web_server_for_images = True
 {% endif %}
 
 [inspector]
+enabled = {{ ironic_ironic_inspector_enabled }}
+username = {{ ironic_ironic_inspector_service_user_name }}
+password = {{ ironic_ironic_inspector_service_password }}
+project_name = {{ ironic_ironic_inspector_service_project_name }}
+user_domain_name = {{ ironic_ironic_inspector_user_domain_name }}
+project_domain_name = {{ ironic_ironic_inspector_project_domain_name }}
+auth_url = {{ keystone_service_adminuri }}
+insecure = {{ keystone_service_internaluri_insecure | bool }}
+auth_type = {{ ironic_ironic_inspector_keystone_auth_plugin }}
 
 [ipmi]
 
@@ -140,6 +155,7 @@ project_name = {{ ironic_service_project_name }}
 username = {{ ironic_service_user_name }}
 password = {{ ironic_service_password }}
 region_name = {{ keystone_service_region }}
+endpoint_override = {{ ironic_service_publicuri }}
 
 
 [neutron]
@@ -179,6 +195,16 @@ pool_max_size = {{ ironic_wsgi_processes }}
 [pxe]
 tftp_server = {{ ironic_tftp_server_address }}
 pxe_append_params = {{ ironic_pxe_append_params }}
+tftp_root = {{ ironic_tftpd_root }}
+tftp_master_path = {{ ironic_tftpd_root }}/master_images
+{% if ironic_httpboot_enabled | bool %}
+ipxe_enabled=True
+pxe_bootfile_name=undionly.kpxe
+uefi_pxe_bootfile_name=ipxe.efi
+pxe_config_template=$pybasedir/drivers/modules/ipxe_config.template
+uefi_pxe_config_template=$pybasedir/drivers/modules/ipxe_config.template
+ipxe_use_swift={{ ironic_httpboot_use_swift }}
+{% endif %}
 
 [seamicro]
 
