@@ -307,10 +307,10 @@ ironic_drivers_enabled:
 
 # enable ipxe
 ironic_httpboot_enabled: False
-ironic_nginx_log_dir: /var/log/ironic
+ironic_webfsd_log_dir: /var/log/webfs
 ironic_httpboot_image_dir: /httpboot
-ironic_nginx_port: 8050
-ironic_httpboot_publicuri: "{{ ironic_service_proto }}://{{ ironic_tftp_server_address }}:{{ ironic_nginx_port }}"
+ironic_webfsd_port: 8181
+ironic_httpboot_publicuri: "{{ ironic_service_proto }}://{{ ironic_tftp_server_address }}:{{ ironic_webfsd_port }}"
 ironic_httpboot_publicurl: "{{ ironic_httpboot_publicuri }}"
 ironic_httpboot_use_swift: False
 
