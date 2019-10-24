@@ -130,10 +130,10 @@
     owner: "root"
     group: "root"
 
-- name: Copy nginx config file
+- name: Copy webfs config file
   template:
-    src: "nginx.conf.j2"
-    dest: "/etc/nginx/nginx.conf"
+    src: "webfs.conf.j2"
+    dest: "/etc/webfs.conf"
   notify:
-    - Restart nginx
+    - Restart webfs
   when: ironic_httpboot_enabled
