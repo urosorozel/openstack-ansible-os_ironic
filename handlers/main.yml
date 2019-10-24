@@ -35,8 +35,8 @@
     state: restarted
   failed_when: false
 
-- name: Restart nginx
+- name: Restart webfs
   service:
-    name: "nginx"
+    name: "webfs"
     state: restarted
   failed_when: false

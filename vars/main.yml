@@ -31,7 +31,7 @@ ironic_driver_types:
     inspect: inspector
     management: ipmitool
     power: ipmitool
-    rescue: agent
+    rescue: agent,no-rescue
   agent_ipmitool_socat:
     hardware_type: ipmi
     boot: pxe
@@ -102,7 +102,7 @@ ironic_driver_types:
     inspect: inspector
     management: ipmitool
     power: ipmitool
-    rescue: agent
+    rescue: agent,no-rescue
   pxe_ipmitool_socat:
     hardware_type: ipmi
     boot: pxe
@@ -141,9 +141,6 @@ ironic_driver_types:
 
 ironic_packages_list: >
   {%- set package_list = [] %}
-  {%- if ironic_developer_mode | bool %}
-  {%-   set package_list = package_list + ironic_developer_mode_distro_packages %}
-  {%- endif %}
   {%- if ironic_httpboot_enabled | bool %}
   {%-   set package_list = package_list + ironic_conductor_httpboot_distro_packages %}
   {%- endif %}
