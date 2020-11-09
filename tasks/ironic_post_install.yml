@@ -143,7 +143,7 @@
   copy:
     src: "ipxe_config.template"
     dest: "/etc/ironic"
-  when: ironic_httpboot_enabled
+  when: ironic_ipxe_enabled
 
 - name: Include sudoers file
   template:
@@ -160,15 +160,7 @@
     owner: "ironic"
     group: "ironic"
     mode: "0755"
-  when: ironic_httpboot_enabled
-
-- name: Copy webfs config file
-  template:
-    src: "webfsd.conf.j2"
-    dest: "/etc/webfsd.conf"
-  notify:
-    - Restart webfs
-  when: ironic_httpboot_enabled
+  when: ironic_ipxe_enabled
 
 - name: Default inspector.ipxe
   template:
@@ -186,4 +178,4 @@
     dest: "{{ ironic_inspector_httpboot_dir }}"
     remote_src: True
   with_items: "{{ ironic_httpboot_library_modules_paths }}"
-  when: ironic_httpboot_enabled
+  when: ironic_ipxe_enabled

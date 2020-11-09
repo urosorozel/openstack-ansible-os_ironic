@@ -141,7 +141,7 @@ ironic_driver_types:
 
 ironic_packages_list: >
   {%- set package_list = [] %}
-  {%- if ironic_httpboot_enabled | bool %}
+  {%- if ironic_ipxe_enabled | bool %}
   {%-   set package_list = package_list + ironic_conductor_httpboot_distro_packages %}
   {%- endif %}
   {%- if ironic_services['ironic-api']['group'] in group_names %}
@@ -316,7 +316,11 @@ uwsgi_ironic_services: |-
   {{ services }}
 
 filtered_ironic_drivers: |-
+  {% if ironic_ipxe_enabled | bool %}
+  {% set concat_drivers = [{'boot': 'ipxe'}] %}
+  {% else %}
   {% set concat_drivers = [] %}
+  {% endif %}
   {% for driver in ironic_drivers_enabled %}
   {%   if driver in ironic_driver_types.keys() %}
   {%     set _ = concat_drivers.append(ironic_driver_types[driver]) %}

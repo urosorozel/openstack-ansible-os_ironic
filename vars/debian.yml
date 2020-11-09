@@ -43,7 +43,7 @@ ironic_conductor_standalone_distro_packages:
 
 ironic_conductor_httpboot_distro_packages:
   - ipxe
-  - webfs
+  - nginx
 
 ironic_library_modules_paths:
   - "/usr/lib/PXELINUX/pxelinux.0"
@@ -94,3 +94,5 @@ ironic_inspector_library_modules_paths:
 ironic_httpboot_library_modules_paths:
   - "/usr/lib/ipxe/undionly.kpxe"
   - "/usr/lib/ipxe/ipxe.efi"
+
+ironic_nginx_conf_path: "sites-available"

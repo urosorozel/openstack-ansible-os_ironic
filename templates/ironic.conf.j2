@@ -16,8 +16,12 @@ default_network_interface = {{ ironic_default_network_interface }}
 ## RPC Backend
 transport_url = {{ ironic_oslomsg_rpc_transport }}://{% for host in ironic_oslomsg_rpc_servers.split(',') %}{{ ironic_oslomsg_rpc_userid }}:{{ ironic_oslomsg_rpc_password }}@{{ host }}:{{ ironic_oslomsg_rpc_port }}{% if not loop.last %},{% else %}/{{ ironic_oslomsg_rpc_vhost }}{% if ironic_oslomsg_rpc_use_ssl | bool %}?ssl=1{% else %}?ssl=0{% endif %}{% endif %}{% endfor %}
 
-# drivers
-#default_boot_interface = i
+# Ironic boot interface (defaults to None)
+{% if ironic_ipxe_enabled | bool %}
+default_boot_interface = ipxe
+{% endif %}
+
+# Enabled drivers
 enabled_hardware_types = {{ filtered_ironic_drivers | json_query('[*].hardware_type') | unique | join(',') }}
 enabled_boot_interfaces = {{ filtered_ironic_drivers | json_query('[*].boot') | unique | join(',') }}
 enabled_deploy_interfaces = {{ filtered_ironic_drivers | json_query('[*].deploy') | unique | join(',') }}
@@ -71,7 +75,7 @@ http_root ={{ ironic_http_root }}
 http_url = {{ ironic_http_url }}
 {% endif %}
 
-{% if ironic_httpboot_enabled | bool %}
+{% if ironic_ipxe_enabled | bool %}
 http_root={{ ironic_httpboot_image_dir }}
 http_url={{ ironic_httpboot_publicurl }}
 {% endif %}
@@ -213,7 +217,7 @@ tftp_server = {{ ironic_tftp_server_address }}
 pxe_append_params = {{ ironic_pxe_append_params }}
 tftp_root = {{ ironic_tftpd_root }}
 tftp_master_path = {{ ironic_tftpd_root }}/master_images
-{% if ironic_httpboot_enabled | bool %}
+{% if ironic_ipxe_enabled | bool %}
 pxe_bootfile_name=undionly.kpxe
 uefi_pxe_bootfile_name=ipxe.efi
 pxe_config_template={{ ironic_pxe_config_template | default("$pybasedir/drivers/modules/ipxe_config.template") }}
