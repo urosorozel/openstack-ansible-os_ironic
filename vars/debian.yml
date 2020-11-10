@@ -43,7 +43,7 @@ ironic_conductor_standalone_distro_packages:
 
 ironic_conductor_httpboot_distro_packages:
   - ipxe
-  - webfs
+  - nginx
 
 ironic_library_modules_paths:
   - "/usr/lib/PXELINUX/pxelinux.0"

@@ -421,18 +421,16 @@ ironic_inspector_ipa_initrd_url: https://tarballs.openstack.org/ironic-python-ag
 ironic_inspector_ipa_initrd_name: ipa_ramdisk
 ironic_inspector_ipa_initrd_sha256_url: https://tarballs.openstack.org/ironic-python-agent/tinyipa/files/tinyipa-stable-ussuri.gz.sha256
 
-ironic_inspector_ipa_kernel_suffix_url: "{{ ironic_inspector_webfsd_port}}/{{ ironic_inspector_ipa_kernel_name }}"
-ironic_inspector_ipa_initrd_suffix_url: "{{ ironic_inspector_webfsd_port}}/{{ ironic_inspector_ipa_initrd_name}}"
+ironic_inspector_ipa_kernel_suffix_url: "{{ ironic_inspector_nginx_port}}/{{ ironic_inspector_ipa_kernel_name }}"
+ironic_inspector_ipa_initrd_suffix_url: "{{ ironic_inspector_nginx_port}}/{{ ironic_inspector_ipa_initrd_name}}"
 
 # enable ipxe
 ironic_httpboot_enabled: False
-ironic_inspector_webfsd_log_dir: /var/log/webfs
-ironic_webfsd_log_dir: /var/log/webfs
 ironic_inspector_httpboot_image_dir: /httpboot
-ironic_inspector_webfsd_port: 8282
-ironic_webfsd_port: 8282
-ironic_inspector_httpboot_publicuri: "{{ ironic_service_proto }}://{{ ironic_tftp_server_address }}:{{ ironic_webfsd_port }}"
-ironic_httpboot_publicuri: "{{ ironic_service_proto }}://{{ ironic_tftp_server_address }}:{{ ironic_webfsd_port }}"
+ironic_inspector_nginx_port: 8051
+ironic_nginx_port: 8051
+ironic_inspector_httpboot_publicuri: "{{ ironic_service_proto }}://{{ ironic_tftp_server_address }}:{{ ironic_nginx_port }}"
+ironic_httpboot_publicuri: "{{ ironic_service_proto }}://{{ ironic_tftp_server_address }}:{{ ironic_nginx_port }}"
 ironic_inspector_httpboot_publicurl: "{{ ironic_httpboot_publicuri }}"
 ironic_httpboot_publicurl: "{{ ironic_httpboot_publicuri }}"
 ironic_httpboot_use_swift: False

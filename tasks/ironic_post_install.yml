@@ -158,14 +158,6 @@
     mode: "0755"
   when: ironic_httpboot_enabled
 
-- name: Copy webfs config file
-  template:
-    src: "webfsd.conf.j2"
-    dest: "/etc/webfsd.conf"
-  notify:
-    - Restart webfs
-  when: ironic_httpboot_enabled
-
 - name: Default inspector.ipxe
   template:
     src: inspector.ipxe.j2
