@@ -372,9 +372,8 @@ ironic_inspector_dhcp_lease_time: 600
 ironic_inspector_dhcp_type: dnsmasq # isc_dhcp
 ironic_inspector_boot_mode: http #tftp
 ironic_inspector_pxe_boot_mode: "{{ ironic_inspector_boot_mode | default('http')}}"
-ironic_inspector_httpboot_dir: /httpboot
-ironic_httpboot_dir: /httpboot
-ironic_httpboot_image_dir: /httpboot
+ironic_inspector_httpboot_root: /httpboot
+ironic_httpboot_root: /httpboot
 ironic_inspector_tftpboot_dir: "{{ ironic_tftpd_root }}"
 ironic_inspector_power_off: true
 ironic_inspector_permit_active_introspection: false
@@ -426,11 +425,10 @@ ironic_inspector_ipa_initrd_suffix_url: "{{ ironic_inspector_nginx_port}}/{{ iro
 
 # enable ipxe
 ironic_httpboot_enabled: False
-ironic_inspector_httpboot_image_dir: /httpboot
 ironic_inspector_nginx_port: 8051
-ironic_nginx_port: 8051
-ironic_inspector_httpboot_publicuri: "{{ ironic_service_proto }}://{{ ironic_tftp_server_address }}:{{ ironic_nginx_port }}"
-ironic_httpboot_publicuri: "{{ ironic_service_proto }}://{{ ironic_tftp_server_address }}:{{ ironic_nginx_port }}"
+ironic_httpboot_port: 8051
+ironic_inspector_httpboot_publicuri: "{{ ironic_service_proto }}://{{ ironic_tftp_server_address }}:{{ ironic_httpboot_port }}"
+ironic_httpboot_publicuri: "{{ ironic_service_proto }}://{{ ironic_tftp_server_address }}:{{ ironic_httpboot_port }}"
 ironic_inspector_httpboot_publicurl: "{{ ironic_httpboot_publicuri }}"
 ironic_httpboot_publicurl: "{{ ironic_httpboot_publicuri }}"
 ironic_httpboot_use_swift: False

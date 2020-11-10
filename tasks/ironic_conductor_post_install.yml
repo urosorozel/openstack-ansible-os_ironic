@@ -68,16 +68,16 @@
     state: started
     enabled: true
 
-- name: Create "{{ ironic_httpboot_image_dir }}"
+- name: Create "{{ ironic_httpboot_root }}"
   file:
-    path: "{{ ironic_httpboot_image_dir }}"
+    path: "{{ ironic_httpboot_root }}"
     state: directory
     owner: "{{ ironic_system_user_name }}"
     group: "{{ ironic_system_group_name }}"
     mode: "0755"
   when: ironic_httpboot_enabled
 
-- name: Copy library modules into "{{ ironic_httpboot_image_dir }}"
+- name: Copy library modules into "{{ ironic_httpboot_root }}"
   copy:
     src: "{{ item }}"
     dest: "/tftpboot/"

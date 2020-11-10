@@ -76,7 +76,7 @@ http_url = {{ ironic_http_url }}
 {% endif %}
 
 {% if ironic_httpboot_enabled | bool %}
-http_root={{ ironic_httpboot_image_dir }}
+http_root={{ ironic_httpboot_root }}
 http_url={{ ironic_httpboot_publicurl }}
 {% endif %}
 

@@ -1,7 +1,7 @@
 # {{ ansible_managed }}
 
 server {
-  listen 0.0.0.0:{{ ironic_ipxe_port }};
+  listen 0.0.0.0:{{ ironic_httpboot_port }};
   server_name ironic-ipxe;
 
   # Logging
@@ -10,7 +10,7 @@ server {
 
   # directory to store ipxe
   location / {
-    root /httpboot;
+    root {{ ironic_httpboot_root }};
     autoindex off;
     expires 1h;
   }
