@@ -316,7 +316,7 @@ uwsgi_ironic_services: |-
   {{ services }}
 
 filtered_ironic_drivers: |-
-  {% if ironic_ipxe_enabled | bool %}
+  {% if ironic_httpboot_enabled | bool %}
   {% set concat_drivers = [{'boot': 'ipxe'}] %}
   {% else %}
   {% set concat_drivers = [] %}
