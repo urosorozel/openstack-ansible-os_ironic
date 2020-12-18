@@ -46,6 +46,14 @@ ironic_driver_types:
     inspect: irmc
     management: irmc
     power: irmc
+  agent_redfish:
+    hardware_type: redfish
+    boot: redfish-virtual-media
+    deploy: direct
+    inspect: redfish
+    management: redfish
+    power: redfish
+    rescue: agent,no-rescue
   agent_ucs:
     hardware_type: cisco-ucs-managed
     boot: pxe
@@ -97,8 +105,8 @@ ironic_driver_types:
     power: ilo
   pxe_ipmitool:
     hardware_type: ipmi
-    boot: ipxe,pxe
-    deploy: iscsi,direct
+    boot: pxe
+    deploy: iscsi
     inspect: inspector
     management: ipmitool
     power: ipmitool
